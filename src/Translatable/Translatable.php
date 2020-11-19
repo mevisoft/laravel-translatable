@@ -28,6 +28,8 @@ trait Translatable
     protected static $deleteTranslationsCascade = false;
 
     protected $defaultLocale;
+    protected $commonAttributes = [];
+    protected $removedAttributes = [];
 
     public static function bootTranslatable(): void
     {
@@ -41,6 +43,10 @@ trait Translatable
             if (self::$deleteTranslationsCascade === true) {
                 return $model->deleteTranslations();
             }
+        });
+        static::retrieved(function (Model $model) {
+            /* @var Translatable $model */
+            $model->removeTranslationAttributes();
         });
     }
 
@@ -69,12 +75,20 @@ trait Translatable
         self::$deleteTranslationsCascade = true;
     }
 
+    public function removeTranslationAttributes()
+    {
+        foreach ($this->translatedAttributes as $field) {
+            $this->removedAttributes[$field]=$this->attributes[$field];
+            unset($this->attributes[$field]);
+        }
+    }
+
     public function attributesToArray()
     {
         $attributes = parent::attributesToArray();
 
         if (
-            (! $this->relationLoaded('translations') && ! $this->toArrayAlwaysLoadsTranslations() && is_null(self::$autoloadTranslations))
+            (!$this->relationLoaded('translations') && !$this->toArrayAlwaysLoadsTranslations() && is_null(self::$autoloadTranslations))
             || self::$autoloadTranslations === false
         ) {
             return $attributes;
@@ -101,7 +115,7 @@ trait Translatable
         if ($locales === null) {
             $translations = $this->translations()->get();
         } else {
-            $locales = (array) $locales;
+            $locales = (array)$locales;
             $translations = $this->translations()->whereIn($this->getLocaleKey(), $locales)->get();
         }
 
@@ -164,6 +178,11 @@ trait Translatable
     public function getDefaultLocale(): ?string
     {
         return $this->defaultLocale;
+    }
+
+    public function getCommonAttributes(): ?array
+    {
+        return $this->commonAttributes ?: [];
     }
 
     /**
@@ -298,8 +317,13 @@ trait Translatable
 
         if ($this->isTranslationAttribute($attribute)) {
             $this->getTranslationOrNew($locale)->$attribute = $value;
-
-            return $this;
+            if (!in_array($key, $this->getCommonAttributes())) {
+                return $this;
+            }
+        } else {
+            if (in_array($key, $this->getCommonAttributes())) {
+                $this->getTranslationOrNew($locale)->$attribute = $value;
+            }
         }
 
         return parent::setAttribute($key, $value);
@@ -308,6 +332,13 @@ trait Translatable
     public function setDefaultLocale(?string $locale)
     {
         $this->defaultLocale = $locale;
+
+        return $this;
+    }
+
+    public function setCommonAttributes(?string $attributes)
+    {
+        $this->commonAttributes = $attributes;
 
         return $this;
     }
@@ -363,13 +394,13 @@ trait Translatable
     {
         $saved = true;
 
-        if (! $this->relationLoaded('translations')) {
+        if (!$this->relationLoaded('translations')) {
             return $saved;
         }
 
         foreach ($this->translations as $translation) {
             if ($saved && $this->isTranslationDirty($translation)) {
-                if (! empty($connectionName = $this->getConnectionName())) {
+                if (!empty($connectionName = $this->getConnectionName())) {
                     $translation->setConnection($connectionName);
                 }
 
@@ -396,7 +427,7 @@ trait Translatable
 
         if (
             (
-                ! $translation instanceof Model
+                !$translation instanceof Model
                 || $this->isEmptyTranslatableAttribute($attribute, $translation->$attribute)
             )
             && $this->usePropertyFallback()
@@ -446,7 +477,7 @@ trait Translatable
             return $this->useTranslationFallback;
         }
 
-        return (bool) config('translatable.use_fallback');
+        return (bool)config('translatable.use_fallback');
     }
 
     protected function usePropertyFallback(): bool
