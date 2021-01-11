@@ -413,6 +413,9 @@ trait Translatable
                 }
 
                 $translation->setAttribute($this->getTranslationRelationKey(), $this->getKey());
+                foreach ($this->getCommonAttributes() as $attribute) {
+                    $translation->setAttribute($attribute, $this->$attribute);
+                }
                 $saved = $translation->save();
             }
         }
