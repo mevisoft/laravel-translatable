@@ -26,6 +26,7 @@ trait Translatable
     protected static $autoloadTranslations = null;
 
     protected static $deleteTranslationsCascade = false;
+    protected static $retrievedTranslationsRemove = false;
 
     protected $defaultLocale;
     protected $commonAttributes = [];
@@ -46,7 +47,9 @@ trait Translatable
         });
         static::retrieved(function (Model $model) {
             /* @var Translatable $model */
-            $model->removeTranslationAttributes();
+            if (self::$retrievedTranslationsRemove === true) {
+                $model->removeTranslationAttributes();
+            }
         });
     }
 
@@ -78,7 +81,7 @@ trait Translatable
     public function removeTranslationAttributes()
     {
         foreach ($this->translatedAttributes as $field) {
-            $this->removedAttributes[$field]=$this->attributes[$field];
+            $this->removedAttributes[$field] = $this->attributes[$field];
             unset($this->attributes[$field]);
         }
     }
@@ -311,22 +314,27 @@ trait Translatable
         return $newInstance;
     }
 
-    public function setAttribute($key, $value)
+    public function fillCustomAttribute($key, $value)
     {
         [$attribute, $locale] = $this->getAttributeAndLocale($key);
-
+        if (in_array($attribute, $this->getCommonAttributes())) {
+            $this->getTranslationOrNew($locale)->$attribute = $value;
+            return false;
+        }
         if ($this->isTranslationAttribute($attribute)) {
             $this->getTranslationOrNew($locale)->$attribute = $value;
-            if (!in_array($key, $this->getCommonAttributes())) {
-                return $this;
-            }
-        } else {
-            if (in_array($key, $this->getCommonAttributes())) {
-                $this->getTranslationOrNew($locale)->$attribute = $value;
-            }
+            return true;
         }
+        return false;
+    }
 
-        return parent::setAttribute($key, $value);
+    public function setAttribute($key, $value)
+    {
+        if (!$this->fillCustomAttribute($key, $value)) {
+            return parent::setAttribute($key, $value);
+        } else {
+            return $this;
+        }
     }
 
     public function setDefaultLocale(?string $locale)
