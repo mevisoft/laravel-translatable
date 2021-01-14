@@ -14,7 +14,7 @@ trait Scopes
         $withFallback = $this->useFallback();
         $translationTable = $this->getTranslationsTable();
         $localeKey = $this->getLocaleKey();
-        $prefix = \DB::getTablePrefix();
+        $prefix = '';//\DB::getTablePrefix();
 
         $query
             ->select($prefix . $this->getTable() . '.' . $this->getKeyName(), $translationTable . '.' . $translationField)
@@ -53,7 +53,7 @@ trait Scopes
     {
         $translationTable = $this->getTranslationsTable();
         $localeKey = $this->getLocaleKey();
-        $prefix = \DB::getTablePrefix();
+        $prefix = '';//\DB::getTablePrefix();
         $table = $prefix . $this->getTable();
         $keyName = $this->getKeyName();
 
@@ -127,7 +127,7 @@ trait Scopes
 
     protected function getTranslationsTable(): string
     {
-        $prefix = \DB::getTablePrefix();
+        $prefix = '';//\DB::getTablePrefix();
         return $prefix . app()->make($this->getTranslationModelName())->getTable();
     }
 }
