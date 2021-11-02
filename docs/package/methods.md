@@ -92,21 +92,21 @@ Creates a clone and clones the translations.
 $replicate = $post->replicateWithTranslations();
 ```
 
-## getDefaultLocale\(\)
+## getEnforcedLocale\(\)
 
 Returns the current default locale for the current model or `null` if no default locale is set.
 
 ```php
-$post->getDefaultLocale(); // null
+$post->getEnforcedLocale(); // null
 ```
 
-## setDefaultLocale\(?string $locale\)
+## setEnforcedLocale\(?string $locale\)
 
 Sets the default locale for the current model.
 
 ```php
-$post->setDefaultLocale('fr');
-$post->getDefaultLocale(); // 'fr'
+$post->setEnforcedLocale('fr');
+$post->getEnforcedLocale(); // 'fr'
 ```
 
 ## Translation Autoloading

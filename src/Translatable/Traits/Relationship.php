@@ -12,14 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 trait Relationship
 {
     /**
-     * @deprecated
-     */
-    public function getRelationKey(): string
-    {
-        return $this->getTranslationRelationKey();
-    }
-
-    /**
      * @internal will change to protected
      */
     public function getTranslationModelName(): string
@@ -61,6 +53,9 @@ trait Relationship
         return $this->getForeignKey();
     }
 
+    /**
+     * @deprecated
+     */
     public function translation(): HasOne
     {
         return $this

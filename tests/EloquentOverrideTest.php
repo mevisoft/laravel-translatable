@@ -10,9 +10,8 @@ final class EloquentOverrideTest extends TestCase
     public function to_array_returns_translated_attributes(): void
     {
         $vegetable = factory(Vegetable::class)->make(['name:en' => 'Peas']);
-
         static::assertArrayHasKey('name', $vegetable->toArray());
-        static::assertEquals('Peas', $vegetable->toArray()['name']);
+        static::assertEquals('Peas', $vegetable->name);
     }
 
     /** @test */

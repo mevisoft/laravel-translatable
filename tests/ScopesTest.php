@@ -61,139 +61,7 @@ final class ScopesTest extends TestCase
         factory(Country::class)->create(['code' => 'en', 'name:en' => 'English']);
 
         static::assertEquals(1, Country::translated()->count());
-        static::assertEquals('English', Country::with('translations')->translated()->first()->{'name:en'});
-    }
-
-    /** @test */
-    public function lists_of_translated_fields(): void
-    {
-        app()->setLocale('de');
-        app('config')->set('translatable.to_array_always_loads_translations', false);
-
-        factory(Country::class)->create(['code' => 'el', 'name:de' => 'Griechenland']);
-        factory(Country::class)->create(['code' => 'ca', 'name:ca' => 'Català']);
-
-        $countries = Country::listsTranslations('name')->get();
-
-        static::assertEquals(1, $countries->count());
-        static::assertEquals(1, $countries->first()->id);
-        static::assertEquals('Griechenland', $countries->first()->name);
-    }
-
-    /** @test */
-    public function lists_of_translated_fields_with_fallback(): void
-    {
-        app('config')->set('translatable.fallback_locale', 'en');
-        app('config')->set('translatable.to_array_always_loads_translations', false);
-        app()->setLocale('de');
-
-        factory(Country::class)->create(['code' => 'el', 'name:de' => 'Griechenland']);
-        factory(Country::class)->create(['code' => 'fr', 'name:en' => 'France']);
-
-        $country = new Country();
-        $country->useTranslationFallback = true;
-
-        $countries = $country->listsTranslations('name')->get();
-
-        static::assertEquals(2, $countries->count());
-
-        static::assertEquals(1, $countries->first()->id);
-        static::assertEquals('Griechenland', $countries->first()->name);
-        static::assertEquals('France', $countries->last()->name);
-    }
-
-    /** @test */
-    public function lists_of_translated_fields_disable_autoload_translations(): void
-    {
-        app()->setLocale('de');
-        app('config')->set('translatable.to_array_always_loads_translations', true);
-
-        factory(Country::class)->create(['code' => 'el', 'name:de' => 'Griechenland']);
-
-        Country::disableAutoloadTranslations();
-
-        static::assertEquals([['id' => 1, 'name' => 'Griechenland']], Country::listsTranslations('name')->get()->toArray());
-        Country::defaultAutoloadTranslations();
-    }
-
-    /** @test */
-    public function lists_of_translated_fields_enable_autoload_translations(): void
-    {
-        app()->setLocale('de');
-        app('config')->set('translatable.to_array_always_loads_translations', true);
-
-        factory(Country::class)->create(['code' => 'el', 'name:de' => 'Griechenland']);
-
-        Country::enableAutoloadTranslations();
-
-        static::assertEquals([[
-            'id' => 1,
-            'name' => 'Griechenland',
-            'translations' => [[
-                'id' => 1,
-                'country_id' => '1',
-                'name' => 'Griechenland',
-                'locale' => 'de',
-            ]],
-        ]], Country::listsTranslations('name')->get()->toArray());
-        Country::defaultAutoloadTranslations();
-    }
-
-    /** @test */
-    public function scope_withTranslation_without_fallback(): void
-    {
-        factory(Country::class)->create(['code' => 'el', 'name:en' => 'Greece']);
-
-        $result = Country::withTranslation()->first();
-
-        static::assertCount(1, $result->translations);
-        static::assertSame('Greece', $result->translations->first()->name);
-    }
-
-    /** @test */
-    public function scope_withTranslation_with_fallback(): void
-    {
-        app('config')->set('translatable.fallback_locale', 'de');
-        app('config')->set('translatable.use_fallback', true);
-
-        factory(Country::class)->create(['code' => 'el', 'name:en' => 'Greece', 'name:de' => 'Griechenland']);
-
-        $result = Country::withTranslation()->first();
-        static::assertEquals(2, $result->translations->count());
-        static::assertEquals('Greece', $result->translations->where('locale', 'en')->first()->name);
-        static::assertEquals('Griechenland', $result->translations->where('locale', 'de')->first()->name);
-    }
-
-    /** @test */
-    public function scope_withTranslation_with_country_based_fallback(): void
-    {
-        app('config')->set('translatable.fallback_locale', 'en');
-        app('config')->set('translatable.use_fallback', true);
-        app()->setLocale('en-GB');
-
-        factory(Vegetable::class)->create([
-            'en' => ['name' => 'Zucchini'],
-            'de' => ['name' => 'Zucchini'],
-            'de-CH' => ['name' => 'Zucchetti'],
-            'en-GB' => ['name' => 'Courgette'],
-        ]);
-
-        static::assertEquals('Courgette', Vegetable::withTranslation()->first()->name);
-
-        app()->setLocale('de-CH');
-
-        $translations = Vegetable::withTranslation()->first()->translations;
-
-        static::assertEquals(3, $translations->count());
-
-        static::assertEquals('de', $translations[0]->locale);
-        static::assertEquals('Zucchini', $translations[0]->name);
-
-        static::assertEquals('de-CH', $translations[1]->locale);
-        static::assertEquals('Zucchetti', $translations[1]->name);
-
-        static::assertEquals('en', $translations[2]->locale);
-        static::assertEquals('Zucchini', $translations[2]->name);
+        static::assertEquals('English', Country::translated()->first()->{'name:en'});
     }
 
     /** @test */
@@ -244,7 +112,9 @@ final class ScopesTest extends TestCase
         factory(Country::class)->create(['code' => 'gr', 'name:en' => 'Greece']);
         factory(Country::class)->create(['code' => 'fr', 'name:en' => 'France']);
 
-        $result = Country::whereTranslationLike('name', '%eece%')->orWhereTranslationLike('name', '%ance%')->get();
+        $result = Country::whereTranslationLike('name', '%eece%')
+            ->orWhereTranslationLike('name', '%ance%')
+            ->get();
 
         static::assertEquals(2, $result->count());
         static::assertSame('Greece', $result->first()->name);
@@ -285,15 +155,15 @@ final class ScopesTest extends TestCase
     /** @test */
     public function test_orderByTranslation_sorts_by_key_asc_even_if_locale_is_missing(): void
     {
-        factory(Vegetable::class)->create(['en' => ['name' => 'Potatoes'], 'fr' => ['name' => 'Pommes de Terre']]);
+        $b=factory(Vegetable::class)->create(['en' => ['name' => 'Potatoes'], 'fr' => ['name' => 'Pommes de Terre']]);
         factory(Vegetable::class)->create(['en' => ['name' => 'Strawberries'], 'fr' => ['name' => 'Fraises']]);
         factory(Vegetable::class)->create([]);
 
-        $orderInEnglish = Vegetable::orderByTranslation('name')->get();
+        $orderInEnglish = Vegetable::orderByTranslation('name','en')->get();
         static::assertEquals([null, 'Potatoes', 'Strawberries'], $orderInEnglish->pluck('name')->toArray());
 
         app()->setLocale('fr');
-        $orderInFrench = Vegetable::orderByTranslation('name', 'desc')->get();
+        $orderInFrench = Vegetable::orderByTranslation('name', 'fr','desc')->get();
         static::assertEquals(['Pommes de Terre', 'Fraises', null], $orderInFrench->pluck('name')->toArray());
     }
 }
