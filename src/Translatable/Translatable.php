@@ -45,6 +45,7 @@ trait Translatable
                 return $model->deleteTranslations();
             }
         });
+        //add new
         static::retrieved(function (Model $model) {
             /* @var Translatable $model */
             if (self::$retrievedTranslationsRemove === true) {
@@ -77,7 +78,7 @@ trait Translatable
     {
         self::$deleteTranslationsCascade = true;
     }
-
+//add new
     public function removeTranslationAttributes()
     {
         foreach ($this->translatedAttributes as $field) {
@@ -91,7 +92,7 @@ trait Translatable
         $attributes = parent::attributesToArray();
 
         if (
-            (!$this->relationLoaded('translations') && !$this->toArrayAlwaysLoadsTranslations() && is_null(self::$autoloadTranslations))
+            (! $this->relationLoaded('translations') && ! $this->toArrayAlwaysLoadsTranslations() && is_null(self::$autoloadTranslations))
             || self::$autoloadTranslations === false
         ) {
             return $attributes;
@@ -118,7 +119,7 @@ trait Translatable
         if ($locales === null) {
             $translations = $this->translations()->get();
         } else {
-            $locales = (array)$locales;
+            $locales = (array) $locales;
             $translations = $this->translations()->whereIn($this->getLocaleKey(), $locales)->get();
         }
 
@@ -402,13 +403,13 @@ trait Translatable
     {
         $saved = true;
 
-        if (!$this->relationLoaded('translations')) {
+        if (! $this->relationLoaded('translations')) {
             return $saved;
         }
 
         foreach ($this->translations as $translation) {
             if ($saved && $this->isTranslationDirty($translation)) {
-                if (!empty($connectionName = $this->getConnectionName())) {
+                if (! empty($connectionName = $this->getConnectionName())) {
                     $translation->setConnection($connectionName);
                 }
 
@@ -438,7 +439,7 @@ trait Translatable
 
         if (
             (
-                !$translation instanceof Model
+                ! $translation instanceof Model
                 || $this->isEmptyTranslatableAttribute($attribute, $translation->$attribute)
             )
             && $this->usePropertyFallback()
@@ -488,7 +489,7 @@ trait Translatable
             return $this->useTranslationFallback;
         }
 
-        return (bool)config('translatable.use_fallback');
+        return (bool) config('translatable.use_fallback');
     }
 
     protected function usePropertyFallback(): bool

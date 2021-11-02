@@ -14,25 +14,24 @@ trait Scopes
         $withFallback = $this->useFallback();
         $translationTable = $this->getTranslationsTable();
         $localeKey = $this->getLocaleKey();
-        $prefix = '';//\DB::getTablePrefix();
 
         $query
-            ->select($prefix . $this->getTable() . '.' . $this->getKeyName(), $translationTable . '.' . $translationField)
-            ->leftJoin($translationTable, $translationTable . '.' . $this->getTranslationRelationKey(), '=', $prefix . $this->getTable() . '.' . $this->getKeyName())
-            ->where($translationTable . '.' . $localeKey, $this->locale());
+            ->select($this->getTable().'.'.$this->getKeyName(), $translationTable.'.'.$translationField)
+            ->leftJoin($translationTable, $translationTable.'.'.$this->getTranslationRelationKey(), '=', $this->getTable().'.'.$this->getKeyName())
+            ->where($translationTable.'.'.$localeKey, $this->locale());
 
         if ($withFallback) {
             $query->orWhere(function (Builder $q) use ($translationTable, $localeKey) {
                 $q
-                    ->where($translationTable . '.' . $localeKey, $this->getFallbackLocale())
-                    ->whereNotIn($translationTable . '.' . $this->getTranslationRelationKey(), function (QueryBuilder $q) use (
+                    ->where($translationTable.'.'.$localeKey, $this->getFallbackLocale())
+                    ->whereNotIn($translationTable.'.'.$this->getTranslationRelationKey(), function (QueryBuilder $q) use (
                         $translationTable,
                         $localeKey
                     ) {
                         $q
-                            ->select($translationTable . '.' . $this->getTranslationRelationKey())
+                            ->select($translationTable.'.'.$this->getTranslationRelationKey())
                             ->from($translationTable)
-                            ->where($translationTable . '.' . $localeKey, $this->locale());
+                            ->where($translationTable.'.'.$localeKey, $this->locale());
                     });
             });
         }
@@ -53,8 +52,7 @@ trait Scopes
     {
         $translationTable = $this->getTranslationsTable();
         $localeKey = $this->getLocaleKey();
-        $prefix = '';//\DB::getTablePrefix();
-        $table = $prefix . $this->getTable();
+        $table = $this->getTable();
         $keyName = $this->getKeyName();
 
         return $query
@@ -95,10 +93,10 @@ trait Scopes
     public function scopeWhereTranslation(Builder $query, string $translationField, $value, ?string $locale = null, string $method = 'whereHas', string $operator = '=')
     {
         return $query->$method('translations', function (Builder $query) use ($translationField, $value, $locale, $operator) {
-            $query->where($this->getTranslationsTable() . '.' . $translationField, $operator, $value);
+            $query->where($this->getTranslationsTable().'.'.$translationField, $operator, $value);
 
             if ($locale) {
-                $query->where($this->getTranslationsTable() . '.' . $this->getLocaleKey(), $operator, $locale);
+                $query->where($this->getTranslationsTable().'.'.$this->getLocaleKey(), $operator, $locale);
             }
         });
     }
@@ -117,17 +115,16 @@ trait Scopes
                     $countryFallbackLocale = $this->getFallbackLocale($locale); // e.g. de-DE => de
                     $locales = array_unique([$locale, $countryFallbackLocale, $this->getFallbackLocale()]);
 
-                    return $query->whereIn($this->getTranslationsTable() . '.' . $this->getLocaleKey(), $locales);
+                    return $query->whereIn($this->getTranslationsTable().'.'.$this->getLocaleKey(), $locales);
                 }
 
-                return $query->where($this->getTranslationsTable() . '.' . $this->getLocaleKey(), $this->locale());
+                return $query->where($this->getTranslationsTable().'.'.$this->getLocaleKey(), $this->locale());
             },
         ]);
     }
 
     protected function getTranslationsTable(): string
     {
-        $prefix = '';//\DB::getTablePrefix();
-        return $prefix . app()->make($this->getTranslationModelName())->getTable();
+        return app()->make($this->getTranslationModelName())->getTable();
     }
 }

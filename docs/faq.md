@@ -2,7 +2,7 @@
 
 ## **Do you have any example code?**
 
-Examples for all the package features can be found [in the code](https://github.com/Astrotomic/laravel-translatable/tree/master/tests/models) used for the [tests](https://github.com/Astrotomic/laravel-translatable/tree/master/tests).
+Examples for all the package features can be found [in the code](https://github.com/Astrotomic/laravel-translatable/tree/main/tests/Eloquent) used for the [tests](https://github.com/Astrotomic/laravel-translatable/tree/main/tests).
 
 ## **Can I ask you some questions?**
 
@@ -23,10 +23,10 @@ Please see the installation steps to understand how your database should be stru
 If your properties are written in english, we recommend using these commands in your migrations:
 
 ```php
-// We insert the old attributes into the fresh translation table: 
+// We insert the old attributes into the fresh translation table:
 \DB::statement("insert into country_translations (country_id, name, locale) select id, name, 'en' from countries");
 
-// We drop the translation attributes in our main table: 
+// We drop the translation attributes in our main table:
 Schema::table('posts', function ($table) {
     $table->dropColumn('title');
     $table->dropColumn('content');
@@ -35,7 +35,7 @@ Schema::table('posts', function ($table) {
 
 ## **How do I sort by translations?**
 
-We provide a [scope](https://github.com/Astrotomic/laravel-translatable/blob/826fb909eb81f80cccc947a7b66cb9ef35a6e5ef/src/Translatable/Translatable.php#L448-L464) to order the main model entries by it's translation values.
+We provide a [scope](https://github.com/Astrotomic/laravel-translatable/blob/826fb909eb81f80cccc947a7b66cb9ef35a6e5ef/src/Translatable/Translatable.php#L448-L464) to order the main model entries by its translation values.
 
 ## How can I select a model by translated field?
 
@@ -58,8 +58,8 @@ If you see the following mysql error:
 ```text
 [Illuminate\Database\QueryException]
 SQLSTATE[HY000]: General error: 1005 Can't create table 'my_database.#sql-455_63'
-  (errno: 150) (SQL: alter table `country_translations` 
-  add constraint country_translations_country_id_foreign foreign key (`country_id`) 
+  (errno: 150) (SQL: alter table `country_translations`
+  add constraint country_translations_country_id_foreign foreign key (`country_id`)
   references `countries` (`id`) on delete cascade)
 ```
 
@@ -92,4 +92,3 @@ Schema::create('language_translations', function(Blueprint $table){
 ```
 
 The best solution though would be to update your mysql version. And **always make sure you have the same version both in development and production environment!**
-
