@@ -15,17 +15,23 @@ abstract class BaseFallbackResolver extends BaseTranslationResolver
      */
     abstract protected function fallbackLocales(string $locale): array;
 
+    protected function getFallbackLocales(string $locale, TranslatableContract $translatable): array
+    {
+        return $this->fallbackLocales($locale);
+    }
+
     public function resolve(
         TranslatableContract $translatable,
-        string $locale,
-        bool $withFallback,
-        Collection $alreadyCheckedLocales
-    ): ?Model {
-        if (! $withFallback) {
+        string               $locale,
+        bool                 $withFallback,
+        Collection           $alreadyCheckedLocales
+    ): ?Model
+    {
+        if (!$withFallback) {
             return null;
         }
 
-        foreach (array_filter($this->fallbackLocales($locale)) as $fallbackLocale) {
+        foreach (array_filter($this->getFallbackLocales($locale, $translatable)) as $fallbackLocale) {
             $translation = $this->resolveTranslationByLocale(
                 $translatable,
                 $fallbackLocale,
@@ -42,16 +48,17 @@ abstract class BaseFallbackResolver extends BaseTranslationResolver
 
     public function resolveWithAttribute(
         TranslatableContract $translatable,
-        string $locale,
-        bool $withFallback,
-        Collection $alreadyCheckedLocales,
-        string $attribute
-    ): ?Model {
-        if (! $withFallback) {
+        string               $locale,
+        bool                 $withFallback,
+        Collection           $alreadyCheckedLocales,
+        string               $attribute
+    ): ?Model
+    {
+        if (!$withFallback) {
             return null;
         }
 
-        foreach (array_filter($this->fallbackLocales($locale)) as $fallbackLocale) {
+        foreach (array_filter($this->getFallbackLocales($locale, $translatable)) as $fallbackLocale) {
             $translation = $this->resolveTranslationWithAttributeByLocale(
                 $translatable,
                 $fallbackLocale,

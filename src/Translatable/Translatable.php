@@ -4,6 +4,7 @@ namespace Astrotomic\Translatable;
 
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Astrotomic\Translatable\Contracts\TranslationResolver;
+use Astrotomic\Translatable\Scopes\WithTranslatableScope;
 use Astrotomic\Translatable\TranslationResolvers\GivenLocale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -45,6 +46,7 @@ trait Translatable
 
     public static function bootTranslatable(): void
     {
+        self::addGlobalScope(new WithTranslatableScope());
         static::saved(function (Model $model) {
             /* @var Translatable $model */
             return $model->saveTranslations();
