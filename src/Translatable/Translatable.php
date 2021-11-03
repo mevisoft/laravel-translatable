@@ -169,6 +169,11 @@ trait Translatable
         return parent::fill($attributes);
     }
 
+    public function getSelfAttribute($key)
+    {
+        return parent::getAttribute($key);
+    }
+
     public function getAttribute($key)
     {
         [$attribute, $locale] = $this->getAttributeAndLocale($key);
@@ -183,9 +188,25 @@ trait Translatable
         return parent::getAttribute($key);
     }
 
+    public function getModelEnforcedLocaleKey(): ?string
+    {
+        return null;
+    }
+
+    public function getEnforcedLocaleOverride($currentLocale): string
+    {
+        return $currentLocale;
+    }
+
     public function getEnforcedLocale(): ?string
     {
-        return $this->enforcedLocale;
+        $key = $this->getModelEnforcedLocaleKey();
+        if (!empty($key) && $this->exists && $this->getSelfAttribute($key)) {
+            $locale = $this->getSelfAttribute($key);
+        } else {
+            $locale = $this->enforcedLocale;
+        }
+        return $this->getEnforcedLocaleOverride($locale) ?: $locale;
     }
 
     public function getCommonAttributes(): ?array
